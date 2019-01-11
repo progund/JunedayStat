@@ -1,7 +1,9 @@
-package se.juneday.junedaystat;
+package se.juneday.junedaystat.activities;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+
+import se.juneday.junedaystat.R;
 
 public class OverviewActivity extends AppCompatActivity {
 
