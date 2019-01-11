@@ -8,10 +8,15 @@ import android.view.View;
 import android.widget.TextView;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import se.juneday.junedaystat.R;
 import se.juneday.junedaystat.domain.BooksSummary;
+import se.juneday.junedaystat.domain.CodeSummary;
 import se.juneday.junedaystat.domain.JunedayStat;
 import se.juneday.junedaystat.net.StatisticsFetcher;
 
@@ -94,15 +99,28 @@ public class OverviewActivity extends AppCompatActivity {
         updateBookSummaryView(meassurement, outerLayout);
         updateCodeSummaryView(meassurement, outerLayout);
     }
+
     private void updateCodeSummaryView(Meassurement meassurement, View lookupView) {
-        BooksSummary start = meassurement.start.stat.getBooksSummary();
-        BooksSummary stop = meassurement.stop.stat.getBooksSummary();
+        CodeSummary start = meassurement.start.stat.getCodeSummary();
+        CodeSummary stop = meassurement.stop.stat.getCodeSummary();
 
         View codeLayout = lookupView.findViewById(R.id.code_layout);
 
-        setViewText(codeLayout, R.id.loc_java, "Java: ", 1200, 230);
-        setViewText(codeLayout, R.id.loc_c, "C: ", 1200, 230);
-        setViewText(codeLayout, R.id.loc_bash, "Bash: ", 1200, 230);
+        /*
+        Set<String> langs = new HashSet<>();
+        Iterator<CodeSummary.Stat> iter = start.iterator();
+        while (iter.hasNext()) {
+            langs.add(iter.next().getLang());
+        }
+        iter = stop.iterator();
+        while (iter.hasNext()) {
+            langs.add(iter.next().getLang());
+        }
+*/
+
+        setViewText(codeLayout, R.id.loc_java, "Java: ", start.stat(CodeSummary.LANG_JAVA).getLoc(), stop.stat(CodeSummary.LANG_JAVA).getLoc());
+        setViewText(codeLayout, R.id.loc_c, "C: ", start.stat(CodeSummary.LANG_C).getLoc(), stop.stat(CodeSummary.LANG_C).getLoc());
+        setViewText(codeLayout, R.id.loc_bash, "Bash: ",start.stat(CodeSummary.LANG_BASH).getLoc(), stop.stat(CodeSummary.LANG_BASH).getLoc());
     }
     private void updateBookSummaryView(Meassurement meassurement, View lookupView) {
         BooksSummary start = meassurement.start.stat.getBooksSummary();
