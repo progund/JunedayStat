@@ -11,8 +11,9 @@ public class CodeSummary implements Iterable<CodeSummary.Stat> {
     public final static String LANG_JAVA = "Java";
     public final static String LANG_BASH = "Bash";
     public final static String LANG_C = "C";
+    public static final String LANG_BUILD = "Build";
 
-    @NonNull
+  @NonNull
     @Override
     public Iterator iterator() {
         return langStat.entrySet().iterator();

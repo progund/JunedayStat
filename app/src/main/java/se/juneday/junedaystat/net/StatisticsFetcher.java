@@ -1,6 +1,8 @@
 package se.juneday.junedaystat.net;
 
 import android.content.Context;
+import android.os.Build.VERSION_CODES;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 
 import com.android.volley.Request;
@@ -10,6 +12,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
+import java.time.LocalDate;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -17,6 +20,7 @@ import java.util.ConcurrentModificationException;
 import java.util.List;
 
 import se.juneday.junedaystat.domain.JunedayStat;
+import se.juneday.junedaystat.utils.Utils;
 
 public class StatisticsFetcher {
 
@@ -44,8 +48,10 @@ public class StatisticsFetcher {
         return instance;
     }
 
-    public void getStat(final String date) {
-        final String url = dateToUrl(date);
+    @RequiresApi(api = VERSION_CODES.O)
+    public void getStat(final LocalDate date) {
+        String dateString = Utils.dateToString(date);
+        final String url = dateToUrl(dateString);
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
                 (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
 
@@ -74,7 +80,7 @@ public class StatisticsFetcher {
     private List<StatisticsChangeListener> listeners;
 
     public interface StatisticsChangeListener {
-        void onChange(String date, JunedayStat jds);
+        void onChange(LocalDate date, JunedayStat jds);
     }
 
     public void addMemberChangeListener(StatisticsChangeListener l) {
