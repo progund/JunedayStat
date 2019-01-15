@@ -2,6 +2,7 @@ package se.juneday.junedaystat.net;
 
 import android.util.Log;
 import java.security.acl.LastOwnerException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONArray;
@@ -163,14 +164,19 @@ public class StatisticsParser {
   }
 
   public static List<Book> parseBooks(JSONArray jsonBooks) {
+    int sum=0;
     List<Book> books = new ArrayList<>();
     for (int i = 0; i < jsonBooks.length(); i++) {
       try {
-        books.add(parseBook(jsonBooks.getJSONObject(i)));
+        Book b = parseBook(jsonBooks.getJSONObject(i));
+        sum += b.pages();
+        books.add(b);
+        Log.d("ZICO", "  summmer: " + sum + "  <---- " + b.pages());
       } catch (JSONException e) {
-        ;
+        Log.d("ZICO", "Exception: " + e)        ;
       }
     }
+    Log.d("ZICO2", "  summmer: " + sum );
     return books;
   }
 
@@ -183,7 +189,7 @@ public class StatisticsParser {
         String type = getStringValue(lang, JunedayStat.JDSTAT_SOURCE_CODE_TYPE, "unknown");
         int loc = getIntValue(lang, JunedayStat.JDSTAT_SOURCE_CODE_LOC, 0);
         int files = getIntValue(lang, JunedayStat.JDSTAT_SOURCE_CODE_FILES, 0);
-        codeSummary.addLanguage(type, new CodeSummary.Stat(type, loc, files));
+        codeSummary.addLanguage(CodeSummary.ProgLang.valueOf(type), new CodeSummary.Stat(type, loc, files));
       } catch (JSONException e) {
         e.printStackTrace();
       }
@@ -193,7 +199,7 @@ public class StatisticsParser {
   }
 
 
-  public static JunedayStat jsonToJunedayStat(JSONObject json) {
+  public static JunedayStat jsonToJunedayStat(LocalDate date, JSONObject json) {
     JSONObject videoSummary;
     JSONObject bookSummary;
     JSONArray codeSummary;
@@ -222,7 +228,7 @@ public class StatisticsParser {
       Log.d(LOG_TAG, " * " + b.name() +  " (" + b.pages() + ")  donkey");
     }
 
-    JunedayStat jds = new JunedayStat(bSum, cSum, vSum, pSum, books);
+    JunedayStat jds = new JunedayStat(date, bSum, cSum, vSum, pSum, books);
 
     return jds;
   }

@@ -3,19 +3,19 @@
   xmlns:app="http://schemas.android.com/apk/res-auto">
   <item
     android:id="@+id/dailly"
-    android:title="Daily"
+    android:title="D"
     app:showAsAction="ifRoom" />
   <item
     android:id="@+id/weekly"
-    android:title="Weekly"
+    android:title="W"
     app:showAsAction="ifRoom" />
   <item
     android:id="@+id/monthly"
-    android:title="Monthly"
+    android:title="M"
     app:showAsAction="ifRoom" />
   <item
     android:id="@+id/yearly"
-    android:title="Yearly"
+    android:title="Y"
     app:showAsAction="ifRoom" />
   <item
     android:id="@+id/year2017"

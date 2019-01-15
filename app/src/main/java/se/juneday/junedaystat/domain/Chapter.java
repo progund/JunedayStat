@@ -2,6 +2,9 @@ package se.juneday.junedaystat.domain;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.lang.StringBuilder;
+
+import se.juneday.junedaystat.utils.Utils;
 
 public class Chapter {
 
@@ -29,6 +32,29 @@ public class Chapter {
     presentations = new ArrayList<>();
   }
 
+  public List<String> channelUrls() {
+    return channelUrls;
+  }
+
+  public List<String> videoUrls() {
+    return videoUrls;
+  }
+
+  public List<Presentation> presentations() {
+    if (presentations!=null) {
+      return presentations;
+    }
+    return new ArrayList<Presentation>();
+  }
+
+  public int presentationsPages() {
+    int sum=0;
+    for (Presentation p : presentations) {
+      sum += p.pages();
+    }
+    return sum;
+  }
+
   public void addChannelUrl(String channel) {
     channelUrls.add(channel);
   }
@@ -45,23 +71,35 @@ public class Chapter {
     return pages;
   }
 
-  public int presentationPages() {
-    int sum = 0;
-    for (Presentation p : presentations) {
-      sum += p.pages();
-    }
-    return sum;
-  }
-
   @Override
   public String toString() {
-    return "Chapter{" +
-        "name='" + name + '\'' +
-        ", pages=" + pages +
-        ", channelUrls=" + channelUrls +
-        ", videoUrls=" + videoUrls +
-        ", presentations=" + presentations +
-        '}';
+    StringBuilder builder = new StringBuilder();
+    builder
+      .append(name)
+      .append(" (").append(pages()).append(")").append(Utils.NEWLINE);
+    builder.append("      Channels:").append(Utils.NEWLINE);
+    for (String s : channelUrls) {
+      builder
+        .append("        ")
+        .append(s)
+        .append(Utils.NEWLINE);
+    }
+    builder.append("      Videos:").append(Utils.NEWLINE);
+    for (String s : videoUrls) {
+      builder
+        .append("        ")
+        .append(s)
+        .append(Utils.NEWLINE);
+    }
+    builder.append("      Presentations:").append("("+presentations.size()+")").append(Utils.NEWLINE);
+    for (Presentation p : presentations) {
+      builder
+        .append("        ")
+        .append(p)
+        .append(Utils.NEWLINE);
+    }
+
+    return builder.toString();
   }
 
 

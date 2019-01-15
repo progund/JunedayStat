@@ -20,9 +20,6 @@ public class Presentation {
 
   @Override
   public String toString() {
-    return "Presentation{" +
-        "pages=" + pages +
-        ", name='" + name + '\'' +
-        '}';
+    return "" + name + " (" + pages + ")";
   }
 }

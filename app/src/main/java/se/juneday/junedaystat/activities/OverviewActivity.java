@@ -3,6 +3,10 @@ package se.juneday.junedaystat.activities;
 // TODO: error feedback
 
 import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.WEEKS;
+import static java.time.temporal.ChronoUnit.MONTHS;
+import static java.time.temporal.ChronoUnit.YEARS;
+import static se.juneday.junedaystat.domain.Measurement.findBook;
 
 import android.support.v4.app.DialogFragment;
 import android.app.DatePickerDialog;
@@ -28,13 +32,18 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import se.juneday.junedaystat.R;
 import se.juneday.junedaystat.domain.Book;
 import se.juneday.junedaystat.domain.BooksSummary;
+import se.juneday.junedaystat.domain.Chapter;
 import se.juneday.junedaystat.domain.CodeSummary;
+import se.juneday.junedaystat.domain.CodeSummary.ProgLang;
 import se.juneday.junedaystat.domain.JunedayStat;
+import se.juneday.junedaystat.domain.Measurement;
 import se.juneday.junedaystat.domain.PodStat;
 import se.juneday.junedaystat.domain.VideoStat;
 import se.juneday.junedaystat.net.StatisticsFetcher;
@@ -48,39 +57,40 @@ public class OverviewActivity extends AppCompatActivity {
   LocalDate stopMeasurement;
   LocalDate currentMeasurement;
 
+  /*
   private static class Stat {
 
     JunedayStat stat;
     LocalDate date;
   }
-
-  private class Meassurement {
+*/
+/*  private class Measurement {
 
     Stat start;
     Stat stop;
 
-    private Meassurement() {
+    private Measurement() {
       start = new Stat();
       stop = new Stat();
     }
 
-    private Meassurement(LocalDate start, LocalDate stop) {
+    private Measurement(LocalDate start, LocalDate stop) {
       this();
       this.start.date = start;
-      this.stop.date = stop;
+      this.stopJunedayStat().date = stop;
     }
   }
 
-  private Meassurement createFromDate(LocalDate startDate, LocalDate stopDate) {
-    Meassurement meassurement = new Meassurement();
+  private Measurement createFromDate(LocalDate startDate, LocalDate stopDate) {
+    Measurement meassurement = new Measurement();
     meassurement.start.date = startDate;
-    meassurement.stop.date = stopDate;
+    meassurement.stopJunedayStat().date = stopDate;
     return meassurement;
   }
 
   @RequiresApi(api = VERSION_CODES.O)
-  private Meassurement createFromDate(String startDate, String stopDate) {
-    Meassurement meassurement = new Meassurement(Utils.stringToLocalDate(startDate),
+  private Measurement createFromDate(String startDate, String stopDate) {
+    Measurement meassurement = new Measurement(Utils.stringToLocalDate(startDate),
         Utils.stringToLocalDate(stopDate));
     return meassurement;
   }
@@ -91,38 +101,39 @@ public class OverviewActivity extends AppCompatActivity {
   }
 
   @RequiresApi(api = VERSION_CODES.O)
-  private Meassurement createFromDate(LocalDate startDate) {
+  private Measurement createFromDate(LocalDate startDate) {
     LocalDate now = now();
-    Meassurement meassurement = new Meassurement(startDate, now);
+    Measurement meassurement = new Measurement(startDate, now);
     return meassurement;
   }
 
 
   @RequiresApi(api = VERSION_CODES.O)
-  private Meassurement createFromDate(int amount, ChronoUnit unit) {
+  private Measurement createFromDate(int amount, ChronoUnit unit) {
     String startDate;
     String stopDate;
     LocalDate now = now();
     LocalDate then = now.minus(amount, unit);
-    Meassurement meassurement = new Meassurement(then, now);
+    Measurement meassurement = new Measurement(then, now);
 
     return meassurement;
   }
 
   @RequiresApi(api = VERSION_CODES.O)
-  private Meassurement extractMeasurement(Bundle bundle) {
+  private Measurement extractMeasurement(Bundle bundle) {
     String startDate;
     String stopDate;
 
     LocalDate now = now();
     LocalDate then = now.minus(30, DAYS);
 
-    Meassurement meassurement = new Meassurement();
+    Measurement meassurement = new Measurement();
     meassurement.start.date = then;
-    meassurement.stop.date = now;
+    meassurement.stopJunedayStat().date = now;
 
     return meassurement;
   }
+*/
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
@@ -133,66 +144,62 @@ public class OverviewActivity extends AppCompatActivity {
 
 
   @RequiresApi(api = VERSION_CODES.O)
-  private void updateActivity(final Meassurement meassurement) {
-    Log.d(LOG_TAG, "updateActivity()  " + meassurement.start.date + " - " + meassurement.stop.date);
+  private void updateActivity(final LocalDate start, final LocalDate stop) {
+    Log.d(LOG_TAG, "updateActivity()  " + start + " - " + stop);
     StatisticsFetcher fetcher = StatisticsFetcher.getInstance(this);
     fetcher.addMemberChangeListener(new StatisticsFetcher.StatisticsChangeListener() {
+    Measurement meassurement = new Measurement();
       @Override
       public void onChange(LocalDate date, JunedayStat jds) {
+        Log.d(LOG_TAG, "Got response: " + Utils.dateToString(date));
         Log.d(LOG_TAG, "Got from fetcher: " + date);
-        Log.d(LOG_TAG,
-            "Got from fetcher, start: " + meassurement.start.date + " " + meassurement.start.stat);
-        Log.d(LOG_TAG,
-            "Got from fetcher, stop: " + meassurement.stop.date + " " + meassurement.stop.stat);
-        if (meassurement.start.date.equals(date)) {
-          meassurement.start.stat = jds;
+        Log.d(LOG_TAG, "Got from fetcher: " + Utils.dateToString(date) + " " + Utils.dateToString(start) + " " + Utils.dateToString(stop));
+        if (start.equals(date)) {
+          Log.d(LOG_TAG, "Got response: start:" + Utils.dateToString(date));
+          meassurement.startJunedayStat(jds);
         } else {
-          meassurement.stop.stat = jds;
+          Log.d(LOG_TAG, "Got response: stop:" + Utils.dateToString(date));
+          meassurement.stopJunedayStat(jds);
         }
-        if (meassurement.start.stat != null && meassurement.stop.stat != null) {
+        if (meassurement.startJunedayStat() != null && meassurement.stopJunedayStat() != null) {
+          Log.d(LOG_TAG, "Got response: both: " + meassurement.stopJunedayStat().books().size() + " | " + meassurement.stopJunedayStat().books().size());
           updateViews(meassurement);
         }
       }
     });
 
     //
-    fetcher.getStat(meassurement.start.date);
-    fetcher.getStat(meassurement.stop.date);
+    fetcher.getStat(start);
+    fetcher.getStat(stop);
 
   }
 
   @RequiresApi(api = VERSION_CODES.O)
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    Meassurement m;
+    Measurement m;
+    LocalDate now = Measurement.now();
     switch (item.getItemId()) {
       case R.id.dailly:
-        m = createFromDate(1, DAYS);
-        updateActivity(m);
+        updateActivity(now.minus(1, DAYS), now);
         return true;
       case R.id.weekly:
-        m = createFromDate(7, DAYS);
-        updateActivity(m);
+        updateActivity(now.minus(1, WEEKS), now);
         return true;
       case R.id.monthly:
-        m = createFromDate(1, ChronoUnit.MONTHS);
-        updateActivity(m);
+        updateActivity(now.minus(1, MONTHS), now);
         return true;
       case R.id.yearly:
-        m = createFromDate(1, ChronoUnit.YEARS);
-        updateActivity(m);
+        updateActivity(now.minus(1, YEARS), now);
         return true;
       case R.id.year2017:
-        m = createFromDate("20170313", "20180101");
-        updateActivity(m);
+        updateActivity(Utils.stringToLocalDate("20170313"),Utils.stringToLocalDate( "20180101"));
         return true;
       case R.id.year2018:
-        m = createFromDate("20180101", "20190101");
-        updateActivity(m);
+        updateActivity(Utils.stringToLocalDate("20180101"),Utils.stringToLocalDate( "20190101"));
         return true;
       case R.id.alltime:
-        m = createFromDate(Utils.stringToLocalDate("20170313"));
-        updateActivity(m);
+        updateActivity(Utils.stringToLocalDate("20170313"),now);
         return true;
       case R.id.user:
         getDatesFromUser();
@@ -215,7 +222,7 @@ public class OverviewActivity extends AppCompatActivity {
         stopMeasurement = Utils.stringToLocalDate(y +
             Utils.formatMonth(m + 1) +
             Utils.formatDay(d));
-        updateActivity(createFromDate(startMeasurement, stopMeasurement));
+        updateActivity(startMeasurement, stopMeasurement);
       }
     });
     dateStopFragment.show(getSupportFragmentManager(), "Stop date");
@@ -248,8 +255,11 @@ public class OverviewActivity extends AppCompatActivity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
-    final Meassurement meassurement = extractMeasurement(savedInstanceState);
-    updateActivity(meassurement);
+    LocalDate now = Measurement.now();
+    updateActivity(now.minus(1, WEEKS), now);
+
+//    final Measurement meassurement = extractMeasurement(savedInstanceState);
+  //  updateActivity(meassurement);
   }
 
   private void setViewTitle(View v, int outerId, String title) {
@@ -281,16 +291,16 @@ public class OverviewActivity extends AppCompatActivity {
   }
 
   @RequiresApi(api = VERSION_CODES.O)
-  private void updateViews(Meassurement meassurement) {
+  private void updateViews(Measurement meassurement) {
     View scrollLayout = findViewById(R.id.scroll_layout);
     View outerLayout = scrollLayout.findViewById(R.id.summary_layout);
 
     View dateLayout = scrollLayout.findViewById(R.id.date_layout);
     TextView date = dateLayout.findViewById(R.id.date_title);
-    int days = (int) DAYS.between(meassurement.start.date, meassurement.stop.date);
+    int days = (int) DAYS.between(meassurement.startJunedayStat().date(), meassurement.stopJunedayStat().date());
 
     date.setText(Html.fromHtml(
-        "<h1>" + meassurement.start.date + " - " + meassurement.stop.date + "<br>" + days
+        "<h1>" + meassurement.startJunedayStat().date() + " - " + meassurement.stopJunedayStat().date() + "<br>" + days
             + " days </h1>"));
 
     updateBookSummaryView(meassurement, outerLayout);
@@ -301,53 +311,57 @@ public class OverviewActivity extends AppCompatActivity {
   }
 
   @RequiresApi(api = VERSION_CODES.O)
-  private void updateVideoSummaryView(Meassurement meassurement, View lookupView) {
-    VideoStat start = meassurement.start.stat.getVideoSummary();
-    VideoStat stop = meassurement.stop.stat.getVideoSummary();
+  private void updateVideoSummaryView(Measurement meassurement, View lookupView) {
+    VideoStat start = meassurement.startJunedayStat().videoSummary();
+    VideoStat stop = meassurement.stopJunedayStat().videoSummary();
 
     setViewTitle(lookupView, R.id.video_title, "Video");
 
-    int days = (int) DAYS.between(meassurement.start.date, meassurement.stop.date);
-    Log.d(LOG_TAG, " videos: " + start.videos() + " " + stop.videos() + " days:" + days + "  "
-        + meassurement.start.date + " " + meassurement.stop.date);
+    int days = (int) DAYS.between(meassurement.startJunedayStat().date(), meassurement.stopJunedayStat().date());
+    Log.d(LOG_TAG, " videos: "
+        + meassurement.startJunedayStat().videoSummary().videos()
+        + " " + meassurement.stopJunedayStat().videoSummary().videos() + " days:" + days + "  "
+        + meassurement.startJunedayStat().date() + " " + meassurement.stopJunedayStat().date());
     View videoLayout = lookupView.findViewById(R.id.video_count);
 
-    setViewText(videoLayout, R.id.video_count, "Videos: ", start.videos(), stop.videos(), days);
+    setViewText(videoLayout, R.id.video_count, "Videos: ",
+        meassurement.startJunedayStat().videoSummary().videos(),
+        meassurement.stopJunedayStat().videoSummary().videos(), days);
   }
 
-  private List<String> bookInfo(Meassurement meassurement) {
+  private List<String> bookInfo(Measurement meassurement) {
     List<String> books = new ArrayList<>();
-    int days = (int) DAYS.between(meassurement.start.date, meassurement.stop.date);
+    int days = (int) DAYS.between(meassurement.startJunedayStat().date(), meassurement.stopJunedayStat().date());
 
-    Map<String, Integer> bookPages = new HashMap<>();
-    for (Book b : meassurement.start.stat.books()) {
-      Log.d(LOG_TAG, "Adding to map: " + b.name() + " " + b.pages());
-      bookPages.put(b.name(), b.pages());
-    }
+    Set<String> titles = Measurement.bookTitlesUnion(meassurement.startJunedayStat().books(), meassurement.stopJunedayStat().books());
+    for (String title : titles) {
+      Book startBook = findBook(meassurement.startJunedayStat().books(), title);
+      Book stopBook = findBook(meassurement.stopJunedayStat().books(), title);
 
-    for (Book b : meassurement.stop.stat.books()) {
-      Log.d(LOG_TAG, "Adding to list: " + b.name() + " " + b.pages());
-      String name = b.name();
-      int stopPages = b.pages();
-
+      int stopPages = 0;
       int startPages = 0;
       try {
-        startPages = bookPages.get(name);
+        startPages = startBook.pages();
+      } catch (Exception e) {
+        ; // already has 0 as default
+      }
+      try {
+        stopPages = stopBook.pages();
       } catch (Exception e) {
         ; // already has 0 as default
       }
 
-      Log.d(LOG_TAG, "book: " + b.name() + " " + startPages + " - " + stopPages);
+      Log.d(LOG_TAG, "book: " + title + " " + startPages + " - " + stopPages);
       int diff = stopPages - startPages;
       double ratio = ((double) diff) / days;
 
-      books.add(name + ": " + diff + "(" + Utils.doubleToString(ratio ) + ")");
+      books.add(title + ": " + diff + "  ( " + Utils.doubleToString(ratio ) + ")");
     }
 
     return books;
   }
 
-  private void updateBooksList(Meassurement meassurement, View lookupView) {
+  private void updateBooksList(Measurement meassurement, View lookupView) {
     View bookLayout = lookupView.findViewById(R.id.books_layout);
     setViewTitle(lookupView, R.id.books_title, "Books");
 
@@ -363,26 +377,30 @@ public class OverviewActivity extends AppCompatActivity {
   }
 
   @RequiresApi(api = VERSION_CODES.O)
-  private void updatePodSummary(Meassurement meassurement, View lookupView) {
+  private void updatePodSummary(Measurement meassurement, View lookupView) {
     View bookLayout = lookupView.findViewById(R.id.book_layout);
-    PodStat start = meassurement.start.stat.podStat();
-    PodStat stop = meassurement.stop.stat.podStat();
+    PodStat start = meassurement.startJunedayStat().podStat();
+    PodStat stop = meassurement.stopJunedayStat().podStat();
 
     setViewTitle(lookupView, R.id.pod_title, "Pod");
 
-    int days = (int) DAYS.between(meassurement.start.date, meassurement.stop.date);
+    int days = (int) DAYS.between(meassurement.startJunedayStat().date(), meassurement.stopJunedayStat().date());
     View videoLayout = lookupView.findViewById(R.id.pod_count);
 
-    Log.d(LOG_TAG, "pod: " + start.podCasts());
-    Log.d(LOG_TAG, "pod: " + stop.podCasts());
+    Log.d(LOG_TAG, "pod: " + meassurement.startJunedayStat().podStat().podCasts());
+    Log.d(LOG_TAG, "pod: " + meassurement.stopJunedayStat().podStat().podCasts());
 
-    setViewText(videoLayout, R.id.pod_count, "Videos: ", start.podCasts(), stop.podCasts(), days);
+    setViewText(videoLayout,
+        R.id.pod_count, "Videos: ",
+        meassurement.startJunedayStat().podStat().podCasts(),
+        meassurement.stopJunedayStat().podStat().podCasts(),
+        days);
   }
 
   @RequiresApi(api = VERSION_CODES.O)
-  private void updateCodeSummaryView(Meassurement meassurement, View lookupView) {
-    CodeSummary start = meassurement.start.stat.getCodeSummary();
-    CodeSummary stop = meassurement.stop.stat.getCodeSummary();
+  private void updateCodeSummaryView(Measurement meassurement, View lookupView) {
+    CodeSummary start = meassurement.startJunedayStat().codeSummary();
+    CodeSummary stop = meassurement.stopJunedayStat().codeSummary();
 
     setViewTitle(lookupView, R.id.code_title, "Source code");
 
@@ -390,28 +408,32 @@ public class OverviewActivity extends AppCompatActivity {
 
         /*
         Set<String> langs = new HashSet<>();
-        Iterator<CodeSummary.Stat> iter = start.iterator();
+        Iterator<CodeSummary.Stat> iter = startJunedayStat().iterator();
         while (iter.hasNext()) {new
             langs.add(iter.next().getLang());
         }
-        iter = stop.iterator();
+        iter = stopJunedayStat().iterator();
         while (iter.hasNext()) {
             langs.add(iter.next().getLang());
         }
 */
-    int startJava = getLoc(start.stat(CodeSummary.LANG_JAVA));
-    int stopJava = getLoc(stop.stat(CodeSummary.LANG_JAVA));
-    int startC = getLoc(start.stat(CodeSummary.LANG_C));
-    int stopC = getLoc(stop.stat(CodeSummary.LANG_C));
-    int startBash = getLoc(start.stat(CodeSummary.LANG_BASH));
-    int stopBuild = getLoc(stop.stat(CodeSummary.LANG_BUILD));
-    int startBuild = getLoc(start.stat(CodeSummary.LANG_BUILD));
-    int stopBash = getLoc(stop.stat(CodeSummary.LANG_BASH));
+    int startJava = meassurement.startJunedayStat().codeSummary().loc(CodeSummary.ProgLang.Java);
+    int stopJava = meassurement.stopJunedayStat().codeSummary().loc(CodeSummary.ProgLang.Java);
+
+    int startC = meassurement.startJunedayStat().codeSummary().loc(CodeSummary.ProgLang.C);
+    int stopC = meassurement.stopJunedayStat().codeSummary().loc(CodeSummary.ProgLang.C);
+
+    int startBash = meassurement.startJunedayStat().codeSummary().loc(ProgLang.Bash);
+    int stopBash = meassurement.stopJunedayStat().codeSummary().loc(ProgLang.Bash);
+
+    int startBuild = meassurement.startJunedayStat().codeSummary().loc(ProgLang.Bash);
+    int stopBuild = meassurement.stopJunedayStat().codeSummary().loc(ProgLang.Build);
+
 
     int startSum = startJava + startC + startBash;
     int stopSum = stopJava + stopC + stopBash;
 
-    int days = (int) DAYS.between(meassurement.start.date, meassurement.stop.date);
+    int days = (int) DAYS.between(meassurement.startJunedayStat().date(), meassurement.stopJunedayStat().date());
 
     setViewText(codeLayout, R.id.loc_java, "Java: ", startJava, stopJava, days);
     setViewText(codeLayout, R.id.loc_c, "C: ", startC, stopC, days);
@@ -419,32 +441,39 @@ public class OverviewActivity extends AppCompatActivity {
     setViewText(codeLayout, R.id.loc_total, "Total: ", startSum, stopSum, days);
   }
 
-  private int getLoc(CodeSummary.Stat stat) {
-    if (stat == null) {
-      return 0;
-    }
-    return stat.getLoc();
-  }
-
   @RequiresApi(api = VERSION_CODES.O)
-  private void updateBookSummaryView(Meassurement meassurement, View lookupView) {
-    BooksSummary start = meassurement.start.stat.getBooksSummary();
-    BooksSummary stop = meassurement.stop.stat.getBooksSummary();
+  private void updateBookSummaryView(Measurement meassurement, View lookupView) {
+    BooksSummary start = meassurement.startJunedayStat().booksSummary();
+    BooksSummary stop = meassurement.stopJunedayStat().booksSummary();
 
     View bookLayout = lookupView.findViewById(R.id.book_layout);
 
     setViewTitle(lookupView, R.id.book_title, "Books");
 
-    int days = (int) DAYS.between(meassurement.start.date, meassurement.stop.date);
+    int days = (int) DAYS.between(meassurement.startJunedayStat().date(), meassurement.stopJunedayStat().date());
 
-    setViewText(bookLayout, R.id.books_summary, "Books: ", start.getBooks(), stop.getBooks(), days);
-    setViewText(bookLayout, R.id.pages_summary, "Pages: ", start.getPages(), stop.getPages(), days);
-    setViewText(bookLayout, R.id.channels_summary, "Channels: ", start.getChannels(),
-        stop.getChannels(), days);
-    setViewText(bookLayout, R.id.presentation_summary, "Presentations: ", start.getPresentations(),
-        stop.getPresentations(), days);
+    setViewText(bookLayout, R.id.books_summary, "Books: ",
+        meassurement.startJunedayStat().books().size(),
+        meassurement.stopJunedayStat().books().size(),
+        days);
+    setViewText(bookLayout, R.id.pages_summary, "Pages: ",
+        meassurement.startJunedayStat().pages(),
+        meassurement.stopJunedayStat().pages(),
+        days);
+
+    Log.d(LOG_TAG, "Channels: " + meassurement.startJunedayStat().channels() + " " + meassurement.stopJunedayStat().channels());
+    setViewText(bookLayout, R.id.channels_summary, "Channels: ",
+        meassurement.startJunedayStat().channels(),
+        meassurement.stopJunedayStat().channels(),
+        days);
+    setViewText(bookLayout, R.id.presentation_summary, "Presentations: ",
+        meassurement.startJunedayStat().presentations(),
+        meassurement.stopJunedayStat().presentations(),
+        days);
     setViewText(bookLayout, R.id.presentation_pages_summary, "Presentation pages: ",
-        start.getPresentationsPages(), stop.getPresentationsPages(), days);
+        meassurement.startJunedayStat().presentationsPages(),
+        meassurement.stopJunedayStat().presentationsPages(),
+        days);
   }
 
   public static class DatePickerFragment extends DialogFragment

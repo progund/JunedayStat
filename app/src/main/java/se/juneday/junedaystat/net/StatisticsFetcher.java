@@ -50,6 +50,7 @@ public class StatisticsFetcher {
 
     @RequiresApi(api = VERSION_CODES.O)
     public void getStat(final LocalDate date) {
+        Log.d(LOG_TAG, "getStat(" + Utils.dateToString(date) + ")");
         String dateString = Utils.dateToString(date);
         final String url = dateToUrl(dateString);
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
@@ -57,9 +58,9 @@ public class StatisticsFetcher {
 
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.d(LOG_TAG, "Got response: " + response.toString().length());
-                        JunedayStat jds = StatisticsParser.jsonToJunedayStat(response);
-                        Log.d(LOG_TAG, "Got JunedayStat: " + jds);
+                        Log.d(LOG_TAG, "Got response: " + Utils.dateToString(date) + "    " + response.toString().length());
+                        JunedayStat jds = StatisticsParser.jsonToJunedayStat(date, response);
+                     //   Log.d(LOG_TAG, "Got JunedayStat: " + jds);
                         for (StatisticsChangeListener s : listeners) {
                             s.onChange(date, jds);
                         }

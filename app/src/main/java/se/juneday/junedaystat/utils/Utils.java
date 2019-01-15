@@ -1,8 +1,5 @@
 package se.juneday.junedaystat.utils;
 
-import android.os.Build.VERSION_CODES;
-import android.support.annotation.RequiresApi;
-import android.util.Log;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -15,6 +12,7 @@ public class Utils {
 
   public static final String DATE_FORMAT = "yyyyMMdd";
   public static final String TWO_DIGITS = "%02d";
+  public static final String NEWLINE = "\n";
 
   public static DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
   public static DecimalFormat decimalFormat = new DecimalFormat("#0.00");
@@ -32,14 +30,12 @@ public class Utils {
   }
 
   public static LocalDate stringToLocalDate(String dateString) {
-    Log.d("Utils", "string: " + dateString);
     return LocalDate.parse(dateString, dateFormatter);
   }
 
   public static String doubleToString(double d) {
     return decimalFormat.format(d);
   }
-
 
 
 }
