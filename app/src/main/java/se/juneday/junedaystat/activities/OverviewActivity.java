@@ -6,7 +6,6 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.WEEKS;
 import static java.time.temporal.ChronoUnit.MONTHS;
 import static java.time.temporal.ChronoUnit.YEARS;
-import static se.juneday.junedaystat.domain.Measurement.findBook;
 
 import android.support.v4.app.DialogFragment;
 import android.app.DatePickerDialog;
@@ -39,13 +38,12 @@ import java.util.Set;
 import se.juneday.junedaystat.R;
 import se.juneday.junedaystat.domain.Book;
 import se.juneday.junedaystat.domain.BooksSummary;
-import se.juneday.junedaystat.domain.Chapter;
 import se.juneday.junedaystat.domain.CodeSummary;
 import se.juneday.junedaystat.domain.CodeSummary.ProgLang;
 import se.juneday.junedaystat.domain.JunedayStat;
-import se.juneday.junedaystat.domain.Measurement;
 import se.juneday.junedaystat.domain.PodStat;
 import se.juneday.junedaystat.domain.VideoStat;
+import se.juneday.junedaystat.measurement.Measurement;
 import se.juneday.junedaystat.net.StatisticsFetcher;
 import se.juneday.junedaystat.utils.Utils;
 
@@ -178,7 +176,7 @@ public class OverviewActivity extends AppCompatActivity {
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     Measurement m;
-    LocalDate now = Measurement.now();
+    LocalDate now = LocalDate.now();
     switch (item.getItemId()) {
       case R.id.dailly:
         updateActivity(now.minus(1, DAYS), now);
@@ -255,7 +253,7 @@ public class OverviewActivity extends AppCompatActivity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
-    LocalDate now = Measurement.now();
+    LocalDate now = LocalDate.now();
     updateActivity(now.minus(1, WEEKS), now);
 
 //    final Measurement meassurement = extractMeasurement(savedInstanceState);
@@ -335,8 +333,8 @@ public class OverviewActivity extends AppCompatActivity {
 
     Set<String> titles = Measurement.bookTitlesUnion(meassurement.startJunedayStat().books(), meassurement.stopJunedayStat().books());
     for (String title : titles) {
-      Book startBook = findBook(meassurement.startJunedayStat().books(), title);
-      Book stopBook = findBook(meassurement.stopJunedayStat().books(), title);
+      Book startBook = meassurement.findBook(meassurement.startJunedayStat().books(), title);
+      Book stopBook = meassurement.findBook(meassurement.stopJunedayStat().books(), title);
 
       int stopPages = 0;
       int startPages = 0;
